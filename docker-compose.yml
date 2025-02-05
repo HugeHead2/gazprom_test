@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7.0
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=username
+      - MONGO_INITDB_ROOT_PASSWORD=password
+      - MONGO_INITDB_DATABASE=mydatabase
+    volumes:
+      - ./data/mongodb:/data/db
+
+  server:
+    build:
+      context: .
+      dockerfile: dockerfile
+      args:
+        - BUILD=development
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./.env
+    command: poetry run uvicorn main:app --host 0.0.0.0 --port 8000
+    volumes:
+      - ./:/app/
+
+  tests:
+    build:
+      context: .
+      dockerfile: dockerfile
+      args:
+        - BUILD=development
+    env_file:
+      - ./.env
+    command: poetry run pytest ./api_tests/tests.py
+    volumes:
+      - ./:/app/
